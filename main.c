@@ -13,7 +13,7 @@ void main(void)
   SystemCoreClockUpdate(); // Update the internal clock frequency variable
 
   // Initialize LED GPIO
-  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 
   GPIO_InitTypeDef gpio_init = {0};
   gpio_init.Pin = LED_PIN;
@@ -45,8 +45,8 @@ void main(void)
   while(1)
   {
     HAL_GPIO_TogglePin(LED_PORT, LED_PIN);
-    printf("[%.3f] Hello, World!\r\n", HAL_GetTick()/1000.0f);
-    HAL_Delay(500);
+    printf("[%.3f] Hello, World with HAL!\r\n", HAL_GetTick()/1000.0f);
+    HAL_Delay(1000);
   }
 }
 

@@ -9,7 +9,7 @@ add_compile_options(-g -O0) # Global compile flags
 set(BLINK_SOURCES
     main.c
     core/syscalls.c
-    core/startup_stm32f410rx.s
+    core/startup_stm32f407vgtx.s
     core/system_stm32f4xx.c
     core/stm32f4xx_hal_msp.c
     core/stm32f4xx_it.c)
@@ -26,7 +26,7 @@ target_compile_options(blink PRIVATE
     --specs=nano.specs)
 
 target_link_options(blink PRIVATE
-    -T ${CMAKE_SOURCE_DIR}/core/STM32F410RBTx_FLASH.ld 
+    -T ${CMAKE_SOURCE_DIR}/core/STM32F407VGTX_FLASH.ld 
     -u _printf_float)
 
 include(cmake/stm32cubef4.cmake)
