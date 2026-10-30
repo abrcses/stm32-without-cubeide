@@ -9,7 +9,9 @@ set(HAL_SOURCES
     "${HAL_SOURCE_DIR}/stm32f4xx_hal_cortex.c"
     "${HAL_SOURCE_DIR}/stm32f4xx_hal_gpio.c"
     "${HAL_SOURCE_DIR}/stm32f4xx_hal_uart.c"
-    "${HAL_SOURCE_DIR}/stm32f4xx_hal_dma.c")
+    "${HAL_SOURCE_DIR}/stm32f4xx_hal_dma.c"
+    "${HAL_SOURCE_DIR}/stm32f4xx_hal_tim.c"
+    "${HAL_SOURCE_DIR}/stm32f4xx_hal_tim_ex.c")
 
 add_library(stm32cubef4 STATIC ${HAL_SOURCES})
 

@@ -1,10 +1,52 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "main.h"
+#include "FreeRTOS.h"
+#include "task.h"
 
 UART_HandleTypeDef uart2;
 
 void clock_init();
+
+static void task1(void *args __attribute((unused)))
+{
+  while (1)
+  {
+    HAL_GPIO_TogglePin(LED_PORT, GPIO_PIN_13);
+    printf("[%.3f] Hello, World with HAL orange!\r\n", HAL_GetTick() / 1000.0f);
+    HAL_Delay(1000);
+  }
+}
+
+static void task2(void *args __attribute((unused)))
+{
+  while (1)
+  {
+    HAL_GPIO_TogglePin(LED_PORT, LED_PIN);
+    printf("[%.3f] Hello, World with HAL green!\r\n", HAL_GetTick() / 1000.0f);
+    HAL_Delay(2000);
+  }
+}
+
+static void task3(void *args __attribute((unused)))
+{
+  while (1)
+  {
+    HAL_GPIO_TogglePin(LED_PORT, GPIO_PIN_14);
+    printf("[%.3f] Hello, World with HAL red!\r\n", HAL_GetTick() / 1000.0f);
+    HAL_Delay(800);
+  }
+}
+
+static void task4(void *args __attribute((unused)))
+{
+  while (1)
+  {
+    HAL_GPIO_TogglePin(LED_PORT, GPIO_PIN_15);
+    printf("[%.3f] Hello, World with HAL blue!\r\n", HAL_GetTick() / 1000.0f);
+    HAL_Delay(1800);
+  }
+}
 
 void main(void)
 {
@@ -21,7 +63,15 @@ void main(void)
   gpio_init.Pull = GPIO_NOPULL;
   gpio_init.Speed = GPIO_SPEED_LOW;
   gpio_init.Alternate = 0;
+  HAL_GPIO_Init(LED_PORT, &gpio_init);
 
+  gpio_init.Pin = GPIO_PIN_13;
+  HAL_GPIO_Init(LED_PORT, &gpio_init);
+
+  gpio_init.Pin = GPIO_PIN_14;
+  HAL_GPIO_Init(LED_PORT, &gpio_init);
+
+  gpio_init.Pin = GPIO_PIN_15;
   HAL_GPIO_Init(LED_PORT, &gpio_init);
 
   // Initialize UART
@@ -35,19 +85,27 @@ void main(void)
   uart2.Init.OverSampling = UART_OVERSAMPLING_16;
   if (HAL_UART_Init(&uart2) != HAL_OK)
   {
-    while(1);
+    while (1);
   }
 
   // Dummy write, because the first byte seems to always be dropped
   USART2->DR = 0;
   while (!(USART2->SR & USART_SR_TC));
+
+  // while(1)
+  // {
+  //   HAL_GPIO_TogglePin(LED_PORT, LED_PIN);
+  //   printf("[%.3f] Hello, World with HAL!\r\n", HAL_GetTick()/1000.0f);
+  //   HAL_Delay(1000);
+  // }
+
+  xTaskCreate(task1, "orangeLED", 512, NULL, configMAX_PRIORITIES - 1, NULL);
+  xTaskCreate(task2, "greenLED", 512, NULL, configMAX_PRIORITIES - 1, NULL);
+  xTaskCreate(task3, "redLED", 512, NULL, configMAX_PRIORITIES - 1, NULL);
+  xTaskCreate(task4, "blueLED", 512, NULL, configMAX_PRIORITIES - 1, NULL);
   
-  while(1)
-  {
-    HAL_GPIO_TogglePin(LED_PORT, LED_PIN);
-    printf("[%.3f] Hello, World with HAL!\r\n", HAL_GetTick()/1000.0f);
-    HAL_Delay(1000);
-  }
+  vTaskStartScheduler();
+  while (1);
 }
 
 void clock_init()
@@ -55,12 +113,12 @@ void clock_init()
   /* By default HSI (16 MHz RC oscillator) is selected as system clock.
    * We want to use the HSE (8 MHz MCO from ST-LINK connected to OSC_IN)
    * through the PLL to get 100 MHz system clock.
-   */ 
+   */
 
   // Enable power controller and set voltage scale mode 1
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-  
+
   // Configure PLL dividers and multiplier
   /* Input to PLL should be 1-2 MHz (preferably 2 MHz). Choosing M=4 gives
    * us 8 MHz / 4 = 2 MHz.
@@ -68,7 +126,7 @@ void clock_init()
    * multiplier to N=200 gives us 2 MHz * 200 = 400 MHz.
    * The system clock should be 100 MHz. Choosing P=4 gives us
    * 400 MHz / 4 = 100 MHz
-  */
+   */
   RCC_OscInitTypeDef osc_init = {0};
   osc_init.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   osc_init.HSEState = RCC_HSE_BYPASS;
@@ -80,7 +138,7 @@ void clock_init()
   osc_init.PLL.PLLQ = 8;
   if (HAL_RCC_OscConfig(&osc_init) != HAL_OK)
   {
-    while(1);
+    while (1);
   }
 
   /* Set PLL output as the source for the system clock.
@@ -95,6 +153,6 @@ void clock_init()
 
   if (HAL_RCC_ClockConfig(&clock_init, FLASH_LATENCY_3) != HAL_OK) // Configure flash controller for 3V3 supply and 100 MHz -> 3 wait states
   {
-    while(1);
+    while (1);
   }
 }

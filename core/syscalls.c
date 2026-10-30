@@ -66,26 +66,26 @@ int _read(int file, char *ptr, int len) {
   return 0;
 }
 
-register char * stack_ptr asm("sp");
-
 caddr_t _sbrk(int incr) {
-  extern char __bss_end__;		/* Defined by the linker */
-  static char *heap_end;
-  char *prev_heap_end;
- 
-  if (heap_end == 0) {
-    heap_end = &__bss_end__;
-  }
-  prev_heap_end = heap_end;
-  if (heap_end + incr > stack_ptr) {
-    while (1)
-    {
-        // Heap and stack collision
-    }
+  extern char __heap_start__;
+  extern char __heap_end__;
+
+  static char *heap_ptr = NULL;
+  char *prev_heap_ptr;
+
+  if (heap_ptr == NULL) {
+    heap_ptr = &__heap_start__;
   }
 
-  heap_end += incr;
-  return (caddr_t) prev_heap_end;
+  prev_heap_ptr = heap_ptr;
+
+  if ((heap_ptr + incr) > &__heap_end__) {
+    errno = ENOMEM;
+    return (caddr_t)-1;
+  }
+
+  heap_ptr += incr;
+  return (caddr_t)prev_heap_ptr;
 }
 
 int _stat(char *file, struct stat *st) {
