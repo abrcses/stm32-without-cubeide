@@ -12,6 +12,7 @@ set(BLINK_SOURCES
     core/startup_stm32f407vgtx.s
     core/system_stm32f4xx.c
     core/stm32f4xx_hal_msp.c
+    core/stm32f4xx_hal_timebase_tim.c
     core/stm32f4xx_it.c)
 
 add_executable(blink ${BLINK_SOURCES})
@@ -30,7 +31,8 @@ target_link_options(blink PRIVATE
     -u _printf_float)
 
 include(cmake/stm32cubef4.cmake)
-target_link_libraries(blink stm32cubef4)
+include(cmake/freertos.cmake)
+target_link_libraries(blink stm32cubef4 freertos_kernel freertos_config)
 
 set(PROGRAMMER openocd)
 set(PROGRAMMER_FLAGS -f interface/stlink.cfg -f target/stm32f4x.cfg)

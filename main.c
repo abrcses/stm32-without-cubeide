@@ -1,10 +1,28 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "main.h"
+#include "FreeRTOS.h"
+#include "task.h"
 
 UART_HandleTypeDef uart2;
 
 void clock_init();
+
+static void task1(void *args __attribute((unused))) {
+	for (;;) {
+		HAL_GPIO_TogglePin(LED_PORT, 13);
+  //   printf("[%.3f] Hello, World with HAL!\r\n", HAL_GetTick()/1000.0f);
+    HAL_Delay(800);
+	}
+}
+
+static void task2(void *args __attribute((unused))) {
+	for (;;) {
+		HAL_GPIO_TogglePin(LED_PORT, LED_PIN);
+  //   printf("[%.3f] Hello, World with HAL!\r\n", HAL_GetTick()/1000.0f);
+    HAL_Delay(1000);
+	}
+}
 
 void main(void)
 {
@@ -21,6 +39,10 @@ void main(void)
   gpio_init.Pull = GPIO_NOPULL;
   gpio_init.Speed = GPIO_SPEED_LOW;
   gpio_init.Alternate = 0;
+
+  HAL_GPIO_Init(LED_PORT, &gpio_init);
+  
+  gpio_init.Pin = 13;
 
   HAL_GPIO_Init(LED_PORT, &gpio_init);
 
@@ -42,12 +64,17 @@ void main(void)
   USART2->DR = 0;
   while (!(USART2->SR & USART_SR_TC));
   
-  while(1)
-  {
-    HAL_GPIO_TogglePin(LED_PORT, LED_PIN);
-    printf("[%.3f] Hello, World with HAL!\r\n", HAL_GetTick()/1000.0f);
-    HAL_Delay(1000);
-  }
+  // while(1)
+  // {
+  //   HAL_GPIO_TogglePin(LED_PORT, LED_PIN);
+  //   printf("[%.3f] Hello, World with HAL!\r\n", HAL_GetTick()/1000.0f);
+  //   HAL_Delay(1000);
+  // }
+
+  xTaskCreate(task1,"LED1",100,NULL,configMAX_PRIORITIES-1,NULL);
+	xTaskCreate(task2,"LED2",100,NULL,configMAX_PRIORITIES-1,NULL);
+	vTaskStartScheduler();
+	for (;;);
 }
 
 void clock_init()
