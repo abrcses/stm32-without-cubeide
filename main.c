@@ -52,35 +52,22 @@ static void task5(void *args __attribute((unused)))
 {
   while (1)
   {
-    printf("[%.3f] Hello, World with HAL 5!\r\n", HAL_GetTick() / 1000.0f);
-    HAL_Delay(1250);
-  }
-}
-
-static void task6(void *args __attribute((unused)))
-{
-  while (1)
-  {
-    printf("[%.3f] Hello, World with HAL 6!\r\n", HAL_GetTick() / 1000.0f);
-    HAL_Delay(900);
-  }
-}
-
-static void task7(void *args __attribute((unused)))
-{
-  while (1)
-  {
-    printf("[%.3f] Hello, World with HAL 7!\r\n", HAL_GetTick() / 1000.0f);
-    HAL_Delay(1540);
-  }
-}
-
-static void task8(void *args __attribute((unused)))
-{
-  while (1)
-  {
-    printf("[%.3f] Hello, World with HAL 8!\r\n", HAL_GetTick() / 1000.0f);
-    HAL_Delay(2800);
+    uint8_t c;
+    if (HAL_UART_Receive(&uart2, &c, sizeof(c), HAL_MAX_DELAY) == HAL_OK)
+    {
+      switch (c)
+      {
+      case 'b':
+        HAL_GPIO_TogglePin(LED_PORT, GPIO_PIN_15);
+        break;
+      case 'r':
+        HAL_GPIO_TogglePin(LED_PORT, GPIO_PIN_14);
+        break;
+      case 'o':
+        HAL_GPIO_TogglePin(LED_PORT, GPIO_PIN_13);
+        break;
+      }
+    }
   }
 }
 
@@ -113,7 +100,7 @@ void main(void)
   // Initialize UART
   uart2.Instance = USART2;
   uart2.Init.BaudRate = 115200;
-  uart2.Init.Mode = UART_MODE_TX;
+  uart2.Init.Mode = UART_MODE_TX_RX;
   uart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   uart2.Init.WordLength = UART_WORDLENGTH_8B;
   uart2.Init.StopBits = UART_STOPBITS_1;
@@ -135,38 +122,27 @@ void main(void)
   //   HAL_Delay(1000);
   // }
 
-  if (xTaskCreate(task1, "orangeLED", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
-  {
-    while (1);
-  }
+  // if (xTaskCreate(task1, "orangeLED", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
+  // {
+  //   while (1);
+  // }
   if (xTaskCreate(task2, "greenLED", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
   {
     while (1);
   }
-  if (xTaskCreate(task3, "redLED", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
+  // if (xTaskCreate(task3, "redLED", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
+  // {
+  //   while (1);
+  // }
+  // if (xTaskCreate(task4, "blueLED", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
+  // {
+  //   while (1);
+  // }
+  if (xTaskCreate(task5, "rcvTask", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
   {
     while (1);
   }
-  if (xTaskCreate(task4, "blueLED", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
-  {
-    while (1);
-  }
-  if (xTaskCreate(task5, "task5", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
-  {
-    while (1);
-  }
-  if (xTaskCreate(task6, "task6", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
-  {
-    while (1);
-  }
-  if (xTaskCreate(task7, "task7", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
-  {
-    while (1);
-  }
-  if (xTaskCreate(task8, "task8", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
-  {
-    while (1);
-  }
+
 
   vTaskStartScheduler();
   while (1);
