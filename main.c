@@ -48,6 +48,42 @@ static void task4(void *args __attribute((unused)))
   }
 }
 
+static void task5(void *args __attribute((unused)))
+{
+  while (1)
+  {
+    printf("[%.3f] Hello, World with HAL 5!\r\n", HAL_GetTick() / 1000.0f);
+    HAL_Delay(1250);
+  }
+}
+
+static void task6(void *args __attribute((unused)))
+{
+  while (1)
+  {
+    printf("[%.3f] Hello, World with HAL 6!\r\n", HAL_GetTick() / 1000.0f);
+    HAL_Delay(900);
+  }
+}
+
+static void task7(void *args __attribute((unused)))
+{
+  while (1)
+  {
+    printf("[%.3f] Hello, World with HAL 7!\r\n", HAL_GetTick() / 1000.0f);
+    HAL_Delay(1540);
+  }
+}
+
+static void task8(void *args __attribute((unused)))
+{
+  while (1)
+  {
+    printf("[%.3f] Hello, World with HAL 8!\r\n", HAL_GetTick() / 1000.0f);
+    HAL_Delay(2800);
+  }
+}
+
 void main(void)
 {
   HAL_Init();
@@ -99,11 +135,39 @@ void main(void)
   //   HAL_Delay(1000);
   // }
 
-  xTaskCreate(task1, "orangeLED", 512, NULL, configMAX_PRIORITIES - 1, NULL);
-  xTaskCreate(task2, "greenLED", 512, NULL, configMAX_PRIORITIES - 1, NULL);
-  xTaskCreate(task3, "redLED", 512, NULL, configMAX_PRIORITIES - 1, NULL);
-  xTaskCreate(task4, "blueLED", 512, NULL, configMAX_PRIORITIES - 1, NULL);
-  
+  if (xTaskCreate(task1, "orangeLED", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
+  {
+    while (1);
+  }
+  if (xTaskCreate(task2, "greenLED", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
+  {
+    while (1);
+  }
+  if (xTaskCreate(task3, "redLED", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
+  {
+    while (1);
+  }
+  if (xTaskCreate(task4, "blueLED", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
+  {
+    while (1);
+  }
+  if (xTaskCreate(task5, "task5", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
+  {
+    while (1);
+  }
+  if (xTaskCreate(task6, "task6", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
+  {
+    while (1);
+  }
+  if (xTaskCreate(task7, "task7", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
+  {
+    while (1);
+  }
+  if (xTaskCreate(task8, "task8", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
+  {
+    while (1);
+  }
+
   vTaskStartScheduler();
   while (1);
 }
