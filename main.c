@@ -122,6 +122,17 @@ void main(void)
   //   HAL_Delay(1000);
   // }
 
+  while (1) {
+    printf("Enter name: ");
+    char name[50];
+    scanf("%49s", name);
+    printf("Hello, %s!\r\n", name);
+    printf("Enter two numbers: ");
+    int num1, num2;
+    scanf("%d %d", &num1, &num2);
+    printf("The sum of %d and %d is %d\r\n", num1, num2, num1 + num2);
+  }
+
   // if (xTaskCreate(task1, "orangeLED", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
   // {
   //   while (1);

@@ -63,7 +63,13 @@ int _open(const char *name, int flags, int mode) {
 }
 
 int _read(int file, char *ptr, int len) {
-  return 0;
+  (void) file;
+  uint8_t c;
+  if (HAL_UART_Receive(&uart2, &c, 1, HAL_MAX_DELAY) != HAL_OK) {
+    return 0;
+  }
+  *ptr = (char) c;
+  return 1;
 }
 
 caddr_t _sbrk(int incr) {
