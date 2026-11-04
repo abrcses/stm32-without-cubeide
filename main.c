@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include "main.h"
 #include "FreeRTOS.h"
 #include "task.h"
@@ -8,65 +9,71 @@ UART_HandleTypeDef uart2;
 
 void clock_init();
 
-static void task1(void *args __attribute((unused)))
+int green_led_intv = 0;
+int orange_led_intv = 0;
+int red_led_intv = 0;
+int blue_led_intv = 0;
+struct Task_Params {
+  int* led_intv;
+  uint16_t led_pin;
+};
+
+static void led_task(void *args)
 {
+  struct Task_Params *params = (struct Task_Params *) args;
   while (1)
   {
-    HAL_GPIO_TogglePin(LED_PORT, GPIO_PIN_13);
-    printf("[%.3f] Hello, World with HAL orange!\r\n", HAL_GetTick() / 1000.0f);
-    HAL_Delay(1000);
+    if (*(params->led_intv) == 0) {
+      HAL_GPIO_WritePin(LED_PORT, params->led_pin, GPIO_PIN_RESET);
+      HAL_Delay(200);
+    } else {
+      HAL_GPIO_TogglePin(LED_PORT, params->led_pin);
+      HAL_Delay(*(params->led_intv));
+    }
   }
 }
 
-static void task2(void *args __attribute((unused)))
+static void io_task(void *args __attribute((unused)))
 {
-  while (1)
-  {
-    HAL_GPIO_TogglePin(LED_PORT, LED_PIN);
-    printf("[%.3f] Hello, World with HAL green!\r\n", HAL_GetTick() / 1000.0f);
-    HAL_Delay(2000);
-  }
-}
-
-static void task3(void *args __attribute((unused)))
-{
-  while (1)
-  {
-    HAL_GPIO_TogglePin(LED_PORT, GPIO_PIN_14);
-    printf("[%.3f] Hello, World with HAL red!\r\n", HAL_GetTick() / 1000.0f);
-    HAL_Delay(800);
-  }
-}
-
-static void task4(void *args __attribute((unused)))
-{
-  while (1)
-  {
-    HAL_GPIO_TogglePin(LED_PORT, GPIO_PIN_15);
-    printf("[%.3f] Hello, World with HAL blue!\r\n", HAL_GetTick() / 1000.0f);
-    HAL_Delay(1800);
-  }
-}
-
-static void task5(void *args __attribute((unused)))
-{
-  while (1)
-  {
-    uint8_t c;
-    if (HAL_UART_Receive(&uart2, &c, sizeof(c), HAL_MAX_DELAY) == HAL_OK)
-    {
-      switch (c)
-      {
-      case 'b':
-        HAL_GPIO_TogglePin(LED_PORT, GPIO_PIN_15);
-        break;
-      case 'r':
-        HAL_GPIO_TogglePin(LED_PORT, GPIO_PIN_14);
-        break;
-      case 'o':
-        HAL_GPIO_TogglePin(LED_PORT, GPIO_PIN_13);
+  while (1) {
+    char color[10];
+    while (1) {
+      printf("Enter LED [g(reen), o(range), r(ed), or b(lue)]: ");
+      int ret =scanf("%9s", color);
+      if (strncmp(color, "green", 9) == 0 || strncmp(color, "g", 9) == 0
+          || strncmp(color, "orange", 9) == 0 || strncmp(color, "o", 9) == 0
+          || strncmp(color, "red", 9) == 0 || strncmp(color, "r", 9) == 0
+          || strncmp(color, "blue", 9) == 0 || strncmp(color, "b", 9) == 0) {
         break;
       }
+      if (strlen(color) == 9) {
+        printf("\r\n");
+      }
+      printf("%s does not identify an LED.\r\n", color);
+    }
+    
+    int intv = -1;
+    while (1) {
+      printf("Enter interval in ms [200 - 4000 or 0 to turn off]: ");
+      int ret = scanf("%d", &intv);
+      if (ret == 1 && (intv == 0 || (intv >= 200 && intv <= 4000))) {
+        break;
+      }
+      if (ret != 1) {
+        getchar();
+        printf("\r\n");
+      }
+      printf("This input is not a valid interval.\r\n");
+    }
+    
+    if (strncmp(color, "green", 9) == 0 || strncmp(color, "g", 9) == 0) {
+      green_led_intv = intv;
+    } else if (strncmp(color, "orange", 9) == 0 || strncmp(color, "o", 9) == 0) {
+      orange_led_intv = intv;
+    } else if (strncmp(color, "red", 9) == 0 || strncmp(color, "r", 9) == 0) {
+      red_led_intv = intv;
+    } else if (strncmp(color, "blue", 9) == 0 || strncmp(color, "b", 9) == 0) {
+      blue_led_intv = intv;
     }
   }
 }
@@ -115,45 +122,31 @@ void main(void)
   USART2->DR = 0;
   while (!(USART2->SR & USART_SR_TC));
 
-  // while(1)
-  // {
-  //   HAL_GPIO_TogglePin(LED_PORT, LED_PIN);
-  //   printf("[%.3f] Hello, World with HAL!\r\n", HAL_GetTick()/1000.0f);
-  //   HAL_Delay(1000);
-  // }
+  static struct Task_Params green_params = {&green_led_intv, GPIO_PIN_12};
+  static struct Task_Params orange_params = {&orange_led_intv, GPIO_PIN_13};
+  static struct Task_Params red_params = {&red_led_intv, GPIO_PIN_14};
+  static struct Task_Params blue_params = {&blue_led_intv, GPIO_PIN_15};
 
-  while (1) {
-    printf("Enter name: ");
-    char name[50];
-    scanf("%49s", name);
-    printf("Hello, %s!\r\n", name);
-    printf("Enter two numbers: ");
-    int num1, num2;
-    scanf("%d %d", &num1, &num2);
-    printf("The sum of %d and %d is %d\r\n", num1, num2, num1 + num2);
-  }
-
-  // if (xTaskCreate(task1, "orangeLED", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
-  // {
-  //   while (1);
-  // }
-  if (xTaskCreate(task2, "greenLED", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
+  if (xTaskCreate(led_task, "greenLED", 512, &green_params, configMAX_PRIORITIES - 1, NULL) != pdPASS)
   {
     while (1);
   }
-  // if (xTaskCreate(task3, "redLED", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
-  // {
-  //   while (1);
-  // }
-  // if (xTaskCreate(task4, "blueLED", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
-  // {
-  //   while (1);
-  // }
-  if (xTaskCreate(task5, "rcvTask", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
+  if (xTaskCreate(led_task, "orangeLED", 512, &orange_params, configMAX_PRIORITIES - 1, NULL) != pdPASS)
   {
     while (1);
   }
-
+  if (xTaskCreate(led_task, "redLED", 512, &red_params, configMAX_PRIORITIES - 1, NULL) != pdPASS)
+  {
+    while (1);
+  }
+  if (xTaskCreate(led_task, "blueLED", 512, &blue_params, configMAX_PRIORITIES - 1, NULL) != pdPASS)
+  {
+    while (1);
+  }
+  if (xTaskCreate(io_task, "ioTask", 512, NULL, configMAX_PRIORITIES - 1, NULL) != pdPASS)
+  {
+    while (1);
+  }
 
   vTaskStartScheduler();
   while (1);
